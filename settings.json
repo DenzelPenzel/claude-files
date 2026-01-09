@@ -122,7 +122,7 @@
     "claude-opus-4-5-migration@claude-code-plugins": true,
     "typescript-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "rust-analyzer-ls@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
