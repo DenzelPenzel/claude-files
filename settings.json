@@ -10,7 +10,6 @@
     ],
     "defaultMode": "default"
   },
-  "model": "opus",
   "hooks": {
     "Notification": [
       {
@@ -18,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/notify-enhanced.sh /System/Library/Sounds/Submarine.aiff 'Claude has a notification for you'"
+            "command": "/Users/denis/.claude/notify-enhanced.sh /System/Library/Sounds/Submarine.aiff 'Claude has a notification for you'"
           }
         ]
       }
@@ -29,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/notify-enhanced.sh /System/Library/Sounds/Ping.aiff 'Claude has finished responding'"
+            "command": "/Users/denis/.claude/notify-enhanced.sh /System/Library/Sounds/Ping.aiff 'Claude has finished responding'"
           }
         ]
       }
@@ -40,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/notify-enhanced.sh /System/Library/Sounds/Pop.aiff 'Subagent task completed'"
+            "command": "/Users/denis/.claude/notify-enhanced.sh /System/Library/Sounds/Pop.aiff 'Subagent task completed'"
           }
         ]
       }
@@ -51,15 +50,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/hooks/ultrathink_hook.py"
+            "command": "/Users/denis/.claude/hooks/ultrathink_hook.py"
           },
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/hooks/userpromptsubmit/context_enhancer.py"
+            "command": "/Users/denis/.claude/hooks/userpromptsubmit/context_enhancer.py"
           },
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/hooks/userpromptsubmit/session_context.py"
+            "command": "/Users/denis/.claude/hooks/userpromptsubmit/session_context.py"
           }
         ]
       }
@@ -82,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/hooks/sessionstart/load_project_context.sh"
+            "command": "/Users/denis/.claude/hooks/sessionstart/load_project_context.sh"
           }
         ]
       },
@@ -108,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denzel/.claude/hooks/precompact/save_important_context.sh"
+            "command": "/Users/denis/.claude/hooks/precompact/save_important_context.sh"
           }
         ]
       }
@@ -121,10 +120,16 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "ralph-wiggum@claude-plugins-official": false
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
     "lastShownTime": 1753983872081
+  },
+  "model": "opus",
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "MAX_THINKING_TOKENS": "63999"
   }
 }
