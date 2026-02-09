@@ -1,32 +1,19 @@
-# Context Management
+# Context Management & Compaction Recovery
 
 Your context window will be automatically compacted as it approaches its limit,
-allowing you to continue working indefinitely from where you left off.
-Therefore, do not stop tasks early due to token budget concerns. As you
-approach your token budget limit, save your current progress and state to
-memory before the context window refreshes. Always be as persistent and
-autonomous as possible and complete tasks fully, even if the end of your budget
-is approaching. Never artificially stop any task early regardless of the
-context remaining.
+allowing you to continue working indefinitely. Do not stop tasks early due to
+token budget concerns. Always be as persistent and autonomous as possible and
+complete tasks fully.
 
-# Post-Compaction Recovery (CRITICAL)
+**After context compaction, your FIRST action MUST be `/session-resume`.**
+Do NOT respond to the user's request until you have run it.
 
-After context compaction, your FIRST action MUST be:
-```
-/session-resume
-```
-
-Do NOT respond to the user's request until you have run `/session-resume`.
-
-**Signs you just experienced compaction:**
+Signs compaction just occurred:
 - The conversation feels "fresh" but user expects you to continue work
 - SessionStart hook shows an active session with compaction_count > 0
 - User says "continue", "keep going", "where were we"
 
-**If unsure whether compaction occurred, check:**
-```bash
-ls .sessions/active/  # If files exist, run /session-resume
-```
+If unsure, check: `ls .sessions/active/` -- if files exist, run `/session-resume`.
 
 # Coding Style
 - For comments, always use complete sentences ending with a period.
@@ -57,6 +44,63 @@ Do not make autonomous choices for non-trivial cases in these categories:
 # Git & PRs
 - Don't include "Generated with Claude Code" or "Co-Authored-By: Claude" in commit messages or PR bodies.
 - Don't add any AI attribution footers to commits or PRs.
+
+# Sandbox TLS Fix
+
+When `gh`, `git`, `go`, or other CLI commands fail with TLS/x509/certificate errors
+(including `OSStatus -26276` or `certificate is not trusted`), immediately retry the
+command with `dangerouslyDisableSandbox: true`. The macOS sandbox blocks access to
+the Security framework's certificate chain verification via Mach IPC.
+
+# Code Review Workflow
+
+After completing a task or feature, request a code review via Subtrate's native
+review system before creating a PR. This spawns Claude reviewer agents that
+analyze diffs and return structured feedback with issues.
+
+## Post-Commit Review
+```bash
+# Review current branch against main (auto-detects branch/commit/remote)
+substrate review request --session-id "$CLAUDE_SESSION_ID"
+
+# Review a specific branch against a base
+substrate review request --session-id "$CLAUDE_SESSION_ID" --branch feature-x --base main
+
+# Review a specific commit
+substrate review request --session-id "$CLAUDE_SESSION_ID" --commit abc123
+
+# Review a specific PR
+substrate review request --session-id "$CLAUDE_SESSION_ID" --pr 42
+
+# Security-focused review
+substrate review request --session-id "$CLAUDE_SESSION_ID" --type security
+
+# Performance review
+substrate review request --session-id "$CLAUDE_SESSION_ID" --type performance
+
+# Architecture review
+substrate review request --session-id "$CLAUDE_SESSION_ID" --type architecture
+```
+
+## Review Back-and-Forth
+1. Commit changes on feature branch
+2. Run `substrate review request --session-id "$CLAUDE_SESSION_ID"`
+3. Check status: `substrate review status <id> --session-id "$CLAUDE_SESSION_ID"`
+4. View issues: `substrate review issues <id> --session-id "$CLAUDE_SESSION_ID"`
+5. Address issues, commit fixes
+6. Review system tracks iterations automatically
+
+## Review Types
+- **full** (default) — General review (bugs, logic, security, CLAUDE.md compliance)
+- **security** — Injection, auth bypass, data exposure, crypto
+- **performance** — N+1 queries, memory leaks, allocations
+- **architecture** — Separation of concerns, interface design, testability
+
+## When to Request Reviews
+- After completing a task or feature (before opening a PR)
+- After significant refactoring
+- When touching security-sensitive code (`--type security`)
+- When adding new public interfaces (`--type architecture`)
 
 # Hunk for Precision Staging
 
@@ -146,12 +190,25 @@ hunk rebase abort
 - Use fixup (not squash) when you want to silently fold in typo fixes.
 - Run `hunk rebase status` after run to verify completion.
 
-# Task Management
-- Projects use `.tasks/` directory for task tracking.
-- Run `/task-list` when starting work on any project.
-- Key commands: `/task-add`, `/task-next`, `/task-complete`, `/task-view`, `/task-status`, `/task-deps`
-- Priorities: P0 (critical) > P1 (high) > P2 (medium) > P3 (low)
-- Sizes: XS (<1h), S (1-4h), M (4-8h), L (1-3d), XL (3d+)
+# Task Completion Integrity (CRITICAL)
+
+**NEVER mark a task as complete prematurely.** A task is only complete when ALL acceptance criteria are met and the work is fully verified.
+
+**Before marking any task complete:**
+1. Verify ALL acceptance criteria are satisfied
+2. Ensure tests pass (if applicable)
+3. Confirm the feature/fix works end-to-end
+4. Do NOT mark complete just to bypass stop hooks or other blockers
+
+**If a stop hook or blocker prevents you from stopping:**
+- This is by design - complete the remaining work
+- Ask the user if you're unsure what remains
+- NEVER mark tasks complete just to satisfy hook requirements
+
+**If you cannot complete a task:**
+- Leave it as `in_progress` or `pending`
+- Log what remains with `/session-log --progress "Partial: ..."`
+- Ask the user for guidance
 
 # Session Management
 Sessions provide execution continuity across context compactions and work periods.
@@ -249,3 +306,152 @@ Run `/session-checkpoint` after:
 - Find method calls: `sg run -p '$OBJ.$METHOD($$$ARGS)' -l go`
 - Find error returns: `sg run -p 'return $ERR' -l go`
 - Find struct literals: `sg run -p '&$TYPE{$$$FIELDS}' -l go`
+
+# Subtrate - Agent Command Center
+
+Subtrate provides mail/messaging between Claude Code agents with automatic identity management and lifecycle hooks. **Subtrate is the primary way to communicate with the user** -- when you need to reach the user or send status updates, use Subtrate mail rather than just printing to the console.
+
+## Quick Start - Use the /substrate Skill
+
+The easiest way to use Subtrate is via the `/substrate` skill:
+```
+/substrate inbox           # Check your messages
+/substrate status          # Show mail counts
+/substrate send AgentName  # Send a message
+```
+
+The skill handles session ID and formatting automatically.
+
+## CLI Commands Reference
+
+**IMPORTANT**: Always pass `--session-id "$CLAUDE_SESSION_ID"` to CLI commands, or they will fail with "no agent specified".
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `inbox` | List inbox messages | `substrate inbox --session-id "$CLAUDE_SESSION_ID"` |
+| `read <id>` | Read a specific message | `substrate read 42 --session-id "$CLAUDE_SESSION_ID"` |
+| `send` | Send a new message | `substrate send --session-id "$CLAUDE_SESSION_ID" --to User --subject "Hi" --body "..."` |
+| `status` | Show mail counts | `substrate status --session-id "$CLAUDE_SESSION_ID"` |
+| `poll` | Wait for new messages | `substrate poll --session-id "$CLAUDE_SESSION_ID" --wait=30s` |
+| `heartbeat` | Send liveness signal | `substrate heartbeat --session-id "$CLAUDE_SESSION_ID"` |
+| `identity current` | Show your agent name | `substrate identity current --session-id "$CLAUDE_SESSION_ID"` |
+| `review request` | Request code review | `substrate review request --session-id "$CLAUDE_SESSION_ID"` |
+| `review status <id>` | Show review status | `substrate review status abc --session-id "$CLAUDE_SESSION_ID"` |
+| `review list` | List reviews | `substrate review list --session-id "$CLAUDE_SESSION_ID"` |
+| `review issues <id>` | List review issues | `substrate review issues abc --session-id "$CLAUDE_SESSION_ID"` |
+| `review cancel <id>` | Cancel review | `substrate review cancel abc --session-id "$CLAUDE_SESSION_ID"` |
+
+**There is NO `reply` command** - to reply, use `send` with the sender as recipient:
+```bash
+# Read message #42 from AgentX, then reply:
+substrate send --session-id "$CLAUDE_SESSION_ID" \
+  --to AgentX \
+  --subject "Re: Original Subject" \
+  --body "Your reply here..."
+```
+
+## Setup
+
+```bash
+# Check if hooks are installed
+substrate hooks status
+
+# Install hooks (idempotent - safe to run multiple times)
+substrate hooks install
+```
+
+No manual identity setup needed - your agent identity is auto-created on first use and persists across sessions and compactions.
+
+## What the Hooks Do
+
+| Hook | Behavior |
+|------|----------|
+| **SessionStart** | Heartbeat + inject unread messages as context |
+| **UserPromptSubmit** | Silent heartbeat + check for new mail |
+| **Stop** | Long-poll 9m30s, always block to keep agent alive (Ctrl+C to force exit) |
+| **SubagentStop** | Block once if messages exist, then allow exit |
+| **PreCompact** | Save identity for restoration after compaction |
+
+The Stop hook keeps your agent alive indefinitely, checking for work from other agents. Press **Ctrl+C** to force exit.
+
+## When Stop Hook Shows Mail (ACTION REQUIRED)
+
+**CRITICAL**: When the stop hook blocks with "You have X unread messages", you MUST:
+
+1. **Read your mail immediately**:
+   ```bash
+   substrate inbox --session-id "$CLAUDE_SESSION_ID"
+   ```
+
+2. **Process each message** - read the full content with `substrate read <id> --session-id "$CLAUDE_SESSION_ID"`
+
+3. **Respond or act** on what's requested in the messages
+
+4. **Only then** should you wait for the next user request
+
+**DO NOT** just say "Standing by" or "Ready" when you have mail - this ignores messages from other agents who need your help!
+
+**Example flow when stop hook shows mail:**
+```
+Stop hook: "You have 1 unread message from AgentX"
+→ Run: substrate inbox --session-id "$CLAUDE_SESSION_ID"
+→ Run: substrate read 42 --session-id "$CLAUDE_SESSION_ID"
+→ Process the request in the message
+→ Reply if needed: substrate send --session-id "$CLAUDE_SESSION_ID" --to AgentX --subject "Re: ..." --body "Done!"
+```
+
+## Agent Message Context (IMPORTANT)
+
+When sending messages via Subtrate, **ALWAYS** include a brief context intro so recipients understand your situation:
+
+**Format:**
+```
+[Context: Working on <project> in <directory>, branch: <branch>]
+[Current task: <brief description of what you're doing>]
+
+<actual message body>
+```
+
+**Example:**
+```
+[Context: Working on subtrate in ~/gocode/src/github.com/roasbeef/subtrate, branch: main]
+[Current task: Implementing gRPC integration tests]
+
+Hi, I need help with the test harness setup. The embedded server starts
+correctly but I'm not sure how to configure the notification hub...
+```
+
+**Why this matters:**
+- Recipients see multiple agents across different projects
+- Context helps them understand your situation without asking
+- Makes replies more relevant and helpful
+- Essential for async communication between agents
+
+**Include in your context:**
+- Project name and directory
+- Current git branch
+- What task or goal you're working on
+- Any relevant blockers or decisions needed
+
+## Sending Diffs to the User
+
+After making commits, **send a diff to the User** so they can see actual code
+changes with syntax highlighting in the web UI:
+
+```bash
+substrate send-diff --session-id "$CLAUDE_SESSION_ID" --to User --base main
+```
+
+**When to send diffs:**
+- After making commits on a feature branch (before or after opening a PR)
+- After addressing review feedback with fixup commits
+- When you want the user to see what changed without them having to check git
+
+The command auto-detects the current branch, computes a diff against the base
+branch (main/master), and sends a message with the diff rendered in the web UI.
+
+**Flags:**
+- `--to` — Recipient (default: User)
+- `--base` — Base branch to diff against (auto-detects main/master)
+- `--repo` — Repository path (default: current directory)
+- `--subject` — Custom subject (default: auto-generated from branch + stats)
