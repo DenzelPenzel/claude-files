@@ -88,7 +88,10 @@ substrate review request --session-id "$CLAUDE_SESSION_ID" --type architecture
 3. Check status: `substrate review status <id> --session-id "$CLAUDE_SESSION_ID"`
 4. View issues: `substrate review issues <id> --session-id "$CLAUDE_SESSION_ID"`
 5. Address issues, commit fixes
-6. Review system tracks iterations automatically
+6. Run `substrate review resubmit <id> --session-id "$CLAUDE_SESSION_ID"` to trigger re-review
+   - If the original reviewer is still alive (stop hook polling), feedback is delivered as mail
+   - If the reviewer has exited, a fresh reviewer is spawned automatically
+7. Review system tracks iterations automatically
 
 ## Review Types
 - **full** (default) — General review (bugs, logic, security, CLAUDE.md compliance)
@@ -130,6 +133,18 @@ hunk reset                      # Unstage if needed
 
 Line numbers refer to **new file** lines (what editors display), not old file lines.
 
+**Atomic change groups:**
+When a replacement (deletions + additions with no context between them) is
+partially selected, hunk automatically includes the entire group. You cannot
+stage half a replacement — the deletions and additions are atomic. Pure-addition
+and pure-deletion groups can still be individually line-selected.
+
+**Fallback when staging fails:**
+If `hunk stage` fails with "patch does not apply", fall back to:
+- `git add <file>` for whole-file staging
+- Broader line ranges that cover entire change groups
+- Stage file-by-file instead of cherry-picking lines across many hunks
+
 **Best practices:**
 - Run `hunk diff --json` to get exact line numbers before staging.
 - Use `hunk preview` to verify the patch looks correct before committing.
@@ -165,19 +180,33 @@ hunk rebase abort                      # Abort and restore original state
 **Common patterns:**
 ```bash
 # Squash last 2 commits into one
-hunk rebase list --onto main --json  # Get commit hashes
-hunk rebase run --onto main "pick:first,squash:second"
+hunk rebase list --onto main --json           # Get commit hashes
+hunk rebase run --onto main "pick:abc123,squash:def456"
 
-# Drop a debug commit
-hunk rebase run --onto main "pick:a,drop:debug,pick:b"
+# Drop a debug/temporary commit from history
+hunk rebase run --onto main "pick:abc123,drop:debug1,pick:ghi789"
 
-# Run tests after each commit
-hunk rebase run --onto main "pick:a,exec:make test,pick:b,exec:make test"
+# Run tests after each commit to verify history is clean
+hunk rebase run --onto main "pick:abc123,exec:go test ./...,pick:def456,exec:go test ./..."
+
+# Reword a commit message
+hunk rebase run --onto main "pick:abc123,reword:def456:fix: correct nil check in handshake"
+
+# Squash multiple fixup commits into their targets
+hunk rebase run --onto main "pick:feat1,fixup:typo1,pick:feat2,fixup:typo2"
 ```
+
+**Auto-squash** (preferred for fixup commits):
+```bash
+hunk rebase autosquash --onto main              # Squash all fixup!/squash! commits
+hunk rebase autosquash --onto main --dry-run    # Preview what would be squashed
+```
+
+Create fixups with `git commit --fixup=<sha>`, then auto-squash.
 
 **Conflict handling:**
 ```bash
-hunk rebase status --json  # Check for conflicts
+hunk rebase status                  # Check for conflicts
 # Resolve conflicts manually, then:
 git add <resolved-files>
 hunk rebase continue
@@ -186,7 +215,8 @@ hunk rebase abort
 ```
 
 **Best practices:**
-- Always use `hunk rebase list --onto <base> --json` first to get exact commit hashes.
+- Always `hunk rebase list --onto <base> --json` first to get exact hashes.
+- Prefer `autosquash` over manual `run` when squashing fixups.
 - Use fixup (not squash) when you want to silently fold in typo fixes.
 - Run `hunk rebase status` after run to verify completion.
 
@@ -220,44 +250,22 @@ When a session is active (`.sessions/active/` has files), you MUST log at these 
 
 ### Log Triggers (When to Log)
 
-**1. Key component finished** → `--progress`
-- Completed a function, method, or logical unit
-- Fixed a bug (include file:line)
-- Added/modified a test
+**1. Key component finished / Bug milestone** → `--progress`
 ```
 /session-log --progress "Implemented validateTx in chain.go:145-180"
-/session-log --progress "Fixed nil pointer bug in sweeper.go:245"
 ```
 
-**2. Bug/task milestone** → `--progress`
-- Root cause identified
-- Fix verified working
-- Tests passing
-```
-/session-log --progress "Root cause: missing lock in concurrent path"
-/session-log --progress "Fix verified: all 12 tests passing"
-```
-
-**3. New information learned** → `--discovery`
-- Found undocumented behavior
-- Discovered a constraint or requirement
-- Learned something that affects the approach
+**2. New information learned** → `--discovery`
 ```
 /session-log --discovery "channeldb uses big-endian for keys, not little-endian"
-/session-log --discovery "Must acquire mutex before channel state access"
 ```
 
-**4. Decision made** → `--decision`
-- Chose between multiple approaches
-- Made a tradeoff
+**3. Decision made** → `--decision`
 ```
 /session-log --decision "Using mutex over channel" --rationale="simpler, no concurrent readers"
 ```
 
-**5. Blocked** → `--blocker`
-- Need user input
-- Missing information
-- Unexpected failure
+**4. Blocked** → `--blocker`
 ```
 /session-log --blocker "Need to know: should this return error or panic?"
 ```
@@ -339,7 +347,13 @@ The skill handles session ID and formatting automatically.
 | `review status <id>` | Show review status | `substrate review status abc --session-id "$CLAUDE_SESSION_ID"` |
 | `review list` | List reviews | `substrate review list --session-id "$CLAUDE_SESSION_ID"` |
 | `review issues <id>` | List review issues | `substrate review issues abc --session-id "$CLAUDE_SESSION_ID"` |
+| `review resubmit <id>` | Resubmit after fixes | `substrate review resubmit abc --session-id "$CLAUDE_SESSION_ID"` |
 | `review cancel <id>` | Cancel review | `substrate review cancel abc --session-id "$CLAUDE_SESSION_ID"` |
+| `agent discover` | Discover agents with filters | `substrate agent discover --session-id "$CLAUDE_SESSION_ID" --status active` |
+| `send-diff` | Send git diff as message | `substrate send-diff --session-id "$CLAUDE_SESSION_ID" --to User` |
+| `plan submit` | Submit plan for review | `substrate plan submit --session-id "$CLAUDE_SESSION_ID"` |
+| `plan approve <id>` | Approve a plan | `substrate plan approve abc --session-id "$CLAUDE_SESSION_ID"` |
+| `plan reject <id>` | Reject a plan | `substrate plan reject abc --session-id "$CLAUDE_SESSION_ID"` |
 
 **There is NO `reply` command** - to reply, use `send` with the sender as recipient:
 ```bash
@@ -371,6 +385,7 @@ No manual identity setup needed - your agent identity is auto-created on first u
 | **Stop** | Long-poll 9m30s, always block to keep agent alive (Ctrl+C to force exit) |
 | **SubagentStop** | Block once if messages exist, then allow exit |
 | **PreCompact** | Save identity for restoration after compaction |
+| **Notification** | Send mail to User on permission prompts and notifications |
 
 The Stop hook keeps your agent alive indefinitely, checking for work from other agents. Press **Ctrl+C** to force exit.
 

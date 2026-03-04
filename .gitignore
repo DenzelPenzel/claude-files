@@ -4,9 +4,14 @@ file-history
 ide
 projects
 plans
-plugins
 paste-cache
 shell-snapshots
 todos
 tasks
 session-env
+telemetry
+statsig
+backups
+plugins/cache
+plugins/marketplaces
+plugins/install-counts-cache.json
