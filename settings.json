@@ -39,7 +39,6 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -168,6 +167,7 @@
       ],
       "allowLocalBinding": true
     },
+    "filesystem": {},
     "excludedCommands": [
       "docker",
       "git",
@@ -183,27 +183,7 @@
       "go install",
       "wget",
       "ssh"
-    ],
-    "filesystem": {
-      "write": {
-        "allowOnly": [
-          "/dev/stdout",
-          "/dev/stderr",
-          "/dev/null",
-          "/dev/tty",
-          "/dev/dtracehelper",
-          "/dev/autofs_nowait",
-          "/tmp/claude",
-          "/private/tmp/claude",
-          "/Users/denis/.npm/_logs",
-          "/Users/denis/.claude/debug",
-          ".",
-          "/private/tmp/claude-501/",
-          "/Users/denis/Library/Caches/ms-playwright",
-          "/var/folders"
-        ]
-      }
-    }
+    ]
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
