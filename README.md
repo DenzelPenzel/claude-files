@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-An advanced Claude Code setup with specialized sub-agents, skills, custom commands, automated hooks, session management, and inter-agent messaging via Subtrate. Tailored for complex software engineering workflows, particularly Bitcoin/Lightning Network development.
+An advanced Claude Code setup with specialized sub-agents, skills, custom commands, automated hooks, and session management. Tailored for complex software engineering workflows, particularly Bitcoin/Lightning Network development.
 
 ## Architecture
 
@@ -19,7 +19,6 @@ graph TB
         direction LR
         S1[lnd]
         S2[eclair]
-        S3[substrate]
         S4[nano-banana]
         S5[mutation-testing]
         S6[frontend-design]
@@ -50,7 +49,6 @@ graph TB
 
     subgraph Infra["Infrastructure"]
         direction LR
-        Sub[Subtrate Messaging]
         Ses[Session System]
         Hooks[Hook System]
     end
@@ -71,7 +69,7 @@ graph TB
     class Main core
     class AA,CS,CR,SA,TE,DD,GD,DC2,MT,PB agents
     class IC,PR,TF,QD,ID commands
-    class Sub,Ses,Hooks hooks
+    class Ses,Hooks hooks
     class NT1,NT2,NT3 tools
     class S1,S2,S3,S4,S5,S6 skills
 ```
@@ -84,7 +82,6 @@ Domain-specific toolkits invoked via `/skill-name`:
 |-------|-------------|
 | `lnd` | Lightning Network Daemon - Docker containers, RPC endpoints, channel management |
 | `eclair` | ACINQ's Eclair - Docker containers, API endpoints, payment channels |
-| `substrate` | Agent mail system - inbox, send, reply, identity management |
 | `nano-banana` | AI image generation via Gemini/Imagen 3 |
 | `mutation-testing` | Validate test quality through mutation analysis |
 | `frontend-design` | Production-grade UI components with high design quality |
@@ -127,13 +124,6 @@ Reusable workflows invoked by name:
 
 Shell scripts that execute at Claude Code lifecycle events:
 
-### Substrate Hooks (Agent Messaging)
-- **SessionStart**: Heartbeat + inject unread messages
-- **UserPromptSubmit**: Silent heartbeat + check for new mail
-- **Stop**: Long-poll 9m30s, keep agent alive for inter-agent work
-- **SubagentStop**: One-shot mail check, then allow exit
-- **PreCompact**: Save identity for restoration after compaction
-
 ### Context Hooks
 - **SessionStart** (`load_project_context.sh`): Load project context and active sessions
 - **UserPromptSubmit** (`context_enhancer.py`): Add intelligent context based on keywords
@@ -158,37 +148,6 @@ Key features:
 - Structured logging: progress, decisions, discoveries, blockers
 - Full documentation in [SESSIONS.md](SESSIONS.md)
 
-## Subtrate Agent Messaging
-
-[Subtrate](https://github.com/roasbeef/subtrate) is a command center for orchestrating multiple Claude Code agents. It solves two fundamental problems with Claude Code agents: **isolation** (agents have no way to communicate with each other) and **ephemerality** (agents lose identity and context when compaction occurs).
-
-### Core Components
-
-- **Substrated Daemon**: gRPC server (port 10009) + REST gateway + WebSocket hub + embedded Web UI
-- **Substrate CLI**: Command-line client for mail operations, identity management, and polling
-- **Hook Scripts**: Shell scripts in `~/.claude/hooks/substrate/` that integrate with Claude Code's lifecycle
-
-### Key Features
-
-- **Agent Identity**: Persistent, memorable codenames (e.g., "NobleLion", "SilverWolf") auto-generated on first use. Format: `CodeName@project.branch`. Survives across context compactions via PreCompact/SessionStart hook pair.
-- **Mail System**: Async messaging between agents with thread-based conversations, priorities (urgent/normal/low), and per-recipient state tracking (inbox/archived/trash). Full-text search on message content.
-- **Persistent Agent Pattern**: The Stop hook always outputs `{"decision": "block"}`, keeping the agent alive indefinitely. It long-polls for 9m30s checking for new messages, then loops. This means agents stay running and responsive to mail from other agents. Press Ctrl+C to force exit.
-- **Web UI**: Real-time dashboard at http://localhost:8080 with agent status, activity feed, unread counts, and inbox management. WebSocket-powered live updates.
-- **Heartbeat Tracking**: Agent liveness monitoring with status levels: active (<5min), idle (5-30min), offline (>30min). Heartbeats sent automatically by hooks on session start, prompt submit, and during stop polling.
-
-### How Agents Communicate
-
-```
-Agent A starts -> SessionStart hook sends heartbeat, checks inbox
-Agent A works  -> UserPromptSubmit hook sends heartbeat on each prompt
-Agent A idles  -> Stop hook long-polls, discovers message from Agent B
-                  -> Agent A reads mail, processes request, replies
-Agent B sends  -> substrate send --to AgentA --subject "..." --body "..."
-                  -> Message stored in SQLite, NotificationHub notifies
-```
-
-Subtrate is the **primary channel for reaching the user** and coordinating work across agents. When you need to send a status update or communicate asynchronously, use `substrate send` rather than just printing to the console.
-
 ## Directory Structure
 
 ```
@@ -199,10 +158,9 @@ Subtrate is the **primary channel for reaching the user** and coordinating work 
 ├── settings.json          # Hooks, permissions, sandbox config
 ├── agents/                # Sub-agent definitions (10 agents)
 ├── commands/              # Custom command definitions
-├── skills/                # Skill definitions (9 skills)
+├── skills/                # Skill definitions
 │   ├── lnd/
 │   ├── eclair/
-│   ├── substrate/
 │   ├── nano-banana/
 │   ├── mutation-testing/
 │   ├── frontend-design/
@@ -210,7 +168,6 @@ Subtrate is the **primary channel for reaching the user** and coordinating work 
 │   ├── skill-creator/
 │   └── lnget/
 ├── hooks/                 # Hook scripts
-│   ├── substrate/         # Agent messaging hooks
 │   ├── sessionstart/      # Session start hooks
 │   ├── precompact/        # Pre-compaction hooks
 │   └── userpromptsubmit/  # Prompt enhancement hooks
@@ -231,11 +188,6 @@ Subtrate is the **primary channel for reaching the user** and coordinating work 
    chmod +x ~/.claude/hooks/**/*.sh ~/.claude/hooks/**/*.py
    ```
 
-3. Install Subtrate hooks:
-   ```bash
-   substrate hooks install
-   ```
-
-4. Review `settings.json` for hook paths, permissions, and sandbox configuration.
+3. Review `settings.json` for hook paths, permissions, and sandbox configuration.
 
 See the [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code/overview) for general setup and the [hooks guide](https://docs.anthropic.com/en/docs/claude-code/hooks-guide) for hook configuration.
