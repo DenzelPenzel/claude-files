@@ -10,7 +10,6 @@
       "Bash(git rev-parse:*)",
       "Bash(mkdir:*)",
       "Bash(bun --version:*)",
-      "Bash(substrate:*)",
       "Bash(bun run test:e2e*)",
       "Bash(make bun-test-e2e*)",
       "Bash(playwright test*)",
@@ -56,7 +55,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denis/.claude/hooks/precompact/save_important_context.sh"
+            "command": "/Users/denzel/.claude/hooks/precompact/save_important_context.sh"
           }
         ]
       }
@@ -79,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denis/.claude/hooks/sessionstart/load_project_context.sh"
+            "command": "/Users/denzel/.claude/hooks/sessionstart/load_project_context.sh"
           }
         ]
       },
@@ -111,15 +110,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/denis/.claude/hooks/ultrathink_hook.py"
+            "command": "/Users/denzel/.claude/hooks/ultrathink_hook.py"
           },
           {
             "type": "command",
-            "command": "/Users/denis/.claude/hooks/userpromptsubmit/context_enhancer.py"
+            "command": "/Users/denzel/.claude/hooks/userpromptsubmit/context_enhancer.py"
           },
           {
             "type": "command",
-            "command": "/Users/denis/.claude/hooks/userpromptsubmit/session_context.py"
+            "command": "/Users/denzel/.claude/hooks/userpromptsubmit/session_context.py"
           }
         ]
       }
@@ -167,7 +166,7 @@
       ],
       "allowUnixSockets": [
         "/var/run/docker.sock",
-        "/Users/denis/.gnupg/S.gpg-agent.ssh"
+        "/Users/denzel/.gnupg/S.gpg-agent.ssh"
       ],
       "allowLocalBinding": true
     },
