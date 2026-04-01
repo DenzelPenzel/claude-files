@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(npx uuid v7)",
@@ -173,7 +177,6 @@
       "git",
       "gh",
       "npx playwright",
-      "bun run test:e2e",
       "cargo publish",
       "cargo clean",
       "cargo install",
@@ -186,8 +189,10 @@
     ]
   },
   "alwaysThinkingEnabled": true,
+  "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "feedbackSurveyState": {
     "lastShownTime": 1753983872081
-  }
+  },
+  "effortLevel": "high"
 }

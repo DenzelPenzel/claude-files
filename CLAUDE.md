@@ -16,7 +16,7 @@ Signs compaction just occurred:
 If unsure, check: `ls .sessions/active/` -- if files exist, run `/session-resume`.
 
 # Coding Style
-- For comments, always use complete sentences ending with a period.
+- For comments, always use complete sentences without a trailing period.
 - If unsure about a Go package/struct API, use `go doc` to look it up.
 
 # Decision Checkpoints

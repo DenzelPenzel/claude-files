@@ -15,3 +15,4 @@ backups
 plugins/cache
 plugins/marketplaces
 plugins/install-counts-cache.json
+sessions
