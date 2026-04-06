@@ -4,10 +4,10 @@
     "code-review@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/code-review/c45dd75fa81a",
-        "version": "c45dd75fa81a",
+        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/code-review/142062b3fdeb",
+        "version": "142062b3fdeb",
         "installedAt": "2025-12-28T03:19:16.402Z",
-        "lastUpdated": "2026-04-02T08:32:55.987Z",
+        "lastUpdated": "2026-04-03T18:16:19.235Z",
         "gitCommitSha": "51437a45cafcb760b17c747fa1c4ae9872dce503"
       }
     ],
@@ -35,20 +35,20 @@
     "frontend-design@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/frontend-design/c45dd75fa81a",
-        "version": "c45dd75fa81a",
+        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/frontend-design/142062b3fdeb",
+        "version": "142062b3fdeb",
         "installedAt": "2026-01-25T05:40:38.055Z",
-        "lastUpdated": "2026-04-02T08:32:55.989Z",
+        "lastUpdated": "2026-04-03T18:16:19.235Z",
         "gitCommitSha": "e30768372b4150ca1bc0839d93283e8edc30d60d"
       }
     ],
     "playground@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/playground/c45dd75fa81a",
-        "version": "c45dd75fa81a",
+        "installPath": "/Users/denzel/.claude/plugins/cache/claude-plugins-official/playground/142062b3fdeb",
+        "version": "142062b3fdeb",
         "installedAt": "2026-02-18T01:46:30.602Z",
-        "lastUpdated": "2026-04-02T08:32:55.990Z",
+        "lastUpdated": "2026-04-03T18:16:19.234Z",
         "gitCommitSha": "261ce4fba4f2c314c490302158909a32e5889c88"
       }
     ],

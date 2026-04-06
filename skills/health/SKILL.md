@@ -1,0 +1,1 @@
+/Users/denzel/.claude/skills/gstack/health/SKILL.md
