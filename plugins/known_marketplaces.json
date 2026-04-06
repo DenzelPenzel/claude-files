@@ -5,6 +5,22 @@
       "url": "https://github.com/anthropics/claude-plugins-official.git"
     },
     "installLocation": "/Users/denzel/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-04-03T17:21:05.625Z"
+    "lastUpdated": "2026-04-03T18:16:19.222Z"
+  },
+  "claude-code-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-code"
+    },
+    "installLocation": "/Users/denzel/.claude/plugins/marketplaces/claude-code-plugins",
+    "lastUpdated": "2026-04-05T21:56:26.232Z"
+  },
+  "superpowers-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "obra/superpowers-marketplace"
+    },
+    "installLocation": "/Users/denzel/.claude/plugins/marketplaces/superpowers-marketplace",
+    "lastUpdated": "2026-04-03T18:31:12.240Z"
   }
 }
