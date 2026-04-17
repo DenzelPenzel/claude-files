@@ -1,1 +1,0 @@
-/Users/denzel/.claude/skills/gstack/checkpoint/SKILL.md
